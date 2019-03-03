@@ -31,8 +31,11 @@ async function main(): Promise<void> {
         // XXX: : D
         let text = req.body.text;
         let multivote = true;
-        if (req.body.text.endsWith('--single-vote')) {
+        if (text.endsWith('--single-vote')) {
             text = text.substring(0, text.length - 13).trim();
+            multivote = false;
+        } else if (text.startsWith('--single-vote')) {
+            text = text.substring(13).trim();
             multivote = false;
         }
 
