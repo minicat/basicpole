@@ -8,16 +8,26 @@ function numberToEmojiString(n: number) {
     return emojiString;
 }
 
+export type Poll = {
+    content: string,
+    options: Option[],
+}
 
-export function pollContentToBlocks(poll: any) {
+export type Option = {
+    content: string,
+    votes: User[],
+}
+
+export type User = string;
+
+export function pollContentToBlocks(poll: Poll) {
     // Formats an existing poll into the content of the `blocks` section for postMessage/update
-    const renderedOptions = poll.options.map((option: any, i: number) => {
-    const votes = option.hasOwnProperty('votes') ? option.votes : [];  // waaaaaaahhhhh
-
+    const renderedOptions = poll.options.map((option, i) => {
+        const votes = 'votes' in option ? option.votes : [];  // waaaaaaahhhhh
         return `${numberToEmojiString(i + 1)} ${option.content} ${votes.length}\`\n ${votes.join(' ')}`
     }).join('\n');
 
-    const actionButtons = poll.options.map((option: any, i: number) => {
+    const actionButtons = poll.options.map((_, i) => {
         return {
             "type": "button",
             "text": {
