@@ -28,7 +28,15 @@ async function main(): Promise<void> {
         // req has: channel_id, user_id, text (full command text)
         console.log(req.body);
 
-        const parsedText = parsePollText(req.body.text);
+        // XXX: : D
+        let text = req.body.text;
+        let multivote = true;
+        if (req.body.text.endsWith('--single-vote')) {
+            text = text.substring(0, text.length - 13).trim();
+            multivote = false;
+        }
+
+        const parsedText = parsePollText(text);
         if (parsedText === undefined) {
             res.send("Sorry, your syntax wasn't understood.");
             return;
@@ -56,7 +64,7 @@ async function main(): Promise<void> {
                 content: content,
                 ts: slackMsgRes.ts,
                 options: options,
-                multivote: false,
+                multivote: multivote,
             });
             res.send('');
         } catch (e) {
