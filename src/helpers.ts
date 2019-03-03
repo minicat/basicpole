@@ -1,3 +1,5 @@
+import { KnownBlock } from "@slack/client";
+
 const EMOJI_NUMBERS = ["0️⃣", "1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣", "6️⃣", "7️⃣", "8️⃣", "9️⃣"];
 
 const QUOTE_PAIRS: {[key: string] : string} = {
@@ -68,12 +70,12 @@ function renderUser(user: User): string {
     return `<@${user}>`;
 }
 
-export function pollContentToBlocks(poll: Poll) {
+export function pollContentToBlocks(poll: Poll): KnownBlock[] {
     // Formats an existing poll into the content of the `blocks` section for postMessage/update
     const renderedOptions = poll.options.map((option, i) => {
         const votes = 'votes' in option ? option.votes : [];  // waaaaaaahhhhh
         return `${numberToEmojiString(i + 1)} ${option.content} \`${votes.length}\`\n ${votes.map(renderUser).join(' ')}`
-    }).join('\n');
+    });
 
     const actionButtons = poll.options.map((_, i) => {
         return {
@@ -87,17 +89,25 @@ export function pollContentToBlocks(poll: Poll) {
         }
     })
 
-    return [
+    const header: KnownBlock[] = [
         {
             "type": "section",
             "text": {
                 "type": "mrkdwn",
-                "text": `*${poll.content}*\n${renderedOptions}`
+                "text": `*${poll.content}*`
             }
-        },
-        {
-            "type": "actions",
-            "elements": actionButtons
         }
-    ]
+    ];
+    return header.concat(renderedOptions.map((option): KnownBlock => {
+        return {
+            "type": "section",
+            "text": {
+                "type": "mrkdwn",
+                "text": option,
+            }
+        };
+    }), [{
+        "type": "actions",
+        "elements": actionButtons,
+    }]);
 }
