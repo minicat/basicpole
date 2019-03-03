@@ -1,18 +1,18 @@
 import bodyParser from "body-parser";
 import express from "express";
 import { Application, Request, Response } from "express";
+import {WebClient} from "@slack/client";
 
 import {pollContentToBlocks} from "./helpers";
 import * as storage from "./storage";
 import {Mutex} from "./mutex";
-
-const {WebClient} = require('@slack/client');
+import {OAUTH_TOKEN} from "./config";
 
 async function main(): Promise<void> {
     const app: Application = express();
     const port: number = +(process.env.PORT || 8001);
     const db: storage.Storage = await storage.createStorage(process.env.DB || ':memory:');
-    const slackClient = new WebClient(process.env.OAUTH_TOKEN);
+    const slackClient = new WebClient(OAUTH_TOKEN);
     const postMutex: Mutex = new Mutex();
 
     // for parsing application/x-www-form-urlencoded - sent to slash commands/button clicks
