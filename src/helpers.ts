@@ -1,4 +1,4 @@
-import {ExistingPoll} from './storage';
+import {ExistingPoll, ExistingOption, NewOption, NewPoll, NewPollContent} from './storage';
 
 const EMOJI_NUMBERS = ["0️⃣", "1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣", "6️⃣", "7️⃣", "8️⃣", "9️⃣"];
 
@@ -10,13 +10,16 @@ function numberToEmojiString(n: number) {
     return emojiString;
 }
 
-export function existingPollToBlocks(poll: ExistingPoll) {
+
+export function pollContentToBlocks(poll: any) {
     // Formats an existing poll into the content of the `blocks` section for postMessage/update
-    const renderedOptions = poll.options.map((option, i) => {
-        return `${numberToEmojiString(i + 1)} ${option.content} \`${option.votes.length}\`\n ${option.votes.join(' ')}`
+    const renderedOptions = poll.options.map((option: any, i: number) => {
+    const votes = option.hasOwnProperty('votes') ? option.votes : [];  // waaaaaaahhhhh
+
+        return `${numberToEmojiString(i + 1)} ${option.content} ${votes.length}\`\n ${votes.join(' ')}`
     }).join('\n');
 
-    const actionButtons = poll.options.map((option, i) => {
+    const actionButtons = poll.options.map((option: any, i: number) => {
         return {
             "type": "button",
             "text": {
@@ -41,4 +44,26 @@ export function existingPollToBlocks(poll: ExistingPoll) {
             "elements": actionButtons
         }
     ]
+}
+
+export function postInitialPoll(poll: NewPollContent, token: string): NewPoll {
+    const stuff = {
+        token: token,
+        channel: poll.channel_id,
+        blocks: []
+
+    }
+
+    return {
+        channel_id: poll.channel_id,
+        ts: 'TODO',
+        content: poll.content,
+        options: poll.options,
+        multivote: poll.multivote
+    }
+
+}
+
+export function updatePoll(poll: ExistingPoll) {
+
 }

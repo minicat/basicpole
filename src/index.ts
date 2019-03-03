@@ -2,7 +2,7 @@ import bodyParser from "body-parser";
 import express from "express";
 import { Application, Request, Response } from "express";
 
-import {existingPollToBlocks} from "./helpers";
+import {pollContentToBlocks} from "./helpers";
 import * as storage from "./storage";
 
 async function main(): Promise<void> {
@@ -19,7 +19,7 @@ async function main(): Promise<void> {
         // req has: channel_id, user_id, text (full command text)
         console.log(req.body);
 
-        console.log(JSON.stringify(existingPollToBlocks({
+        console.log(JSON.stringify(pollContentToBlocks({
             channel_id: "1",
             ts: "123",
             content: "DO YOU LIKE PUSHEEN",
