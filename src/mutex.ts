@@ -6,14 +6,19 @@ export class Mutex {
 
     async enqueue(key: string, fn: () => Promise<void>): Promise<void> {
         const prior = this.storage.get(key);
+        let promise;
         if (prior !== undefined) {
-            const promise = prior.then(fn);
-            this.storage.set(key, promise.catch((_) => {}));
-            return promise;
+            promise = prior.then(fn);
         } else {
-            const promise = fn();
-            this.storage.set(key, promise.catch((_) => {}));
-            return promise;
+            promise = fn();
         }
+        const caught = promise.catch((_) => {})
+        this.storage.set(key, caught);
+        caught.then((_) => {
+            if (this.storage.get(key) === caught) {
+                this.storage.delete(key);
+            }
+        });
+        return promise;
     }
 }
