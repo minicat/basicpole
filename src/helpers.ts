@@ -20,11 +20,15 @@ export type Option = {
 
 export type User = string;
 
+function renderUser(user: User): string {
+    return "<@${user}>";
+}
+
 export function pollContentToBlocks(poll: Poll) {
     // Formats an existing poll into the content of the `blocks` section for postMessage/update
     const renderedOptions = poll.options.map((option, i) => {
         const votes = 'votes' in option ? option.votes : [];  // waaaaaaahhhhh
-        return `${numberToEmojiString(i + 1)} ${option.content} ${votes.length}\`\n ${votes.join(' ')}`
+        return `${numberToEmojiString(i + 1)} ${option.content} \`${votes.length}\`\n ${votes.map(renderUser).join(' ')}`
     }).join('\n');
 
     const actionButtons = poll.options.map((_, i) => {

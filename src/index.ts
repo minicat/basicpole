@@ -48,8 +48,8 @@ async function main(): Promise<void> {
                 ts: slackMsgRes.ts,
                 options: options,
                 multivote: false,
-            })
-            res.send('you hit create!')
+            });
+            res.send('');
         } catch (e) {
             console.error(e);
             res.sendStatus(500);
