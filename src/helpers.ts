@@ -1,5 +1,11 @@
 const EMOJI_NUMBERS = ["0️⃣", "1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣", "6️⃣", "7️⃣", "8️⃣", "9️⃣"];
 
+const QUOTE_PAIRS: {[key: string] : string} = {
+    '“': '”',
+    '"': '"',
+    "'": "'"
+}
+
 function numberToEmojiString(n: number) {
     let emojiString = '';
     for (let c of n.toString()) {
@@ -9,35 +15,31 @@ function numberToEmojiString(n: number) {
 }
 
 export function parsePollText(text: string): Poll | undefined {
-    // TODO: fix me :(  handle multiple spaces in between options, invalid input at end, etc
     const parts = [];
 
-    const betterText = text.replace(/[“”‘’']/g,'"');
-
-    if (betterText[0] !== '"') {
-        return undefined;
-    }
+    if (!(QUOTE_PAIRS.hasOwnProperty(text[0]))) return undefined;
 
     let i = 1;
-    let lastStart = 1;
-    while (i < betterText.length) {
-        if (betterText[i] === '"') {
-            if (i - lastStart === 0) {
-                return undefined; // empty string input
+    let openQuote = text[0];
+    let openQuoteI = 0;
+
+    while (i < text.length) {
+        if (openQuote !== '' && text[i] === QUOTE_PAIRS[openQuote]) {
+            parts.push(text.substring(openQuoteI + 1, i));
+            openQuote = '';
+        } else if (openQuote == '') {
+            if (QUOTE_PAIRS.hasOwnProperty(text[i])) {
+                openQuote = text[i];
+                openQuoteI = i;
+            } else if (text[i] != ' ') {
+                return undefined;
             }
-            parts.push(betterText.substring(lastStart, i));
-            // go past the space and next open, if we can
-            if (i == betterText.length - 1) break;
-            // "a" "b"
-            lastStart = i + 3;
-            i += 3;
-        } else {
-            i += 1;
         }
+        i += 1;
     }
-    if (parts.length < 2) {
-        return undefined;
-    }
+
+    // should not have pending open quote at this time
+    if (openQuote !== '') return undefined;
 
     return {
         content: parts[0],
