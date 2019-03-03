@@ -25,35 +25,32 @@ async function main(): Promise<void> {
         console.log(req.body);
 
         // trim quotation marks
-        const text = req.body.split(' ').map((part: string) => part.substring(1, part.length - 1));
+        const text = req.body.text.split(' ').map((part: string) => part.substring(1, part.length - 1));
         const content = text[0];
         const options = text.slice(1);
 
-        // console.log(JSON.stringify(pollContentToBlocks({
-        //     channel_id: "1",
-        //     ts: "123",
-        //     content: "DO YOU LIKE PUSHEEN",
-        //     multivote: false,
-        //     options: [
-        //         {
-        //             content: "YES",
-        //             votes: ['minicat', 'goffrie']
-        //         },
-        //         {
-        //             content: "NO",
-        //             votes: []
-        //         }
-        //     ]
-        // }), null, '  '));
+        const channel_id = req.body.channel_id;
 
-        const slackMsgRes = await slackClient.chat.postMessage({
-            channel: req.body.channel_id,
-            blocks: pollContentToBlocks({
-                content: content,
-                options: options
+        try {
+            const slackMsgRes = await slackClient.chat.postMessage({
+                channel: channel_id,
+                blocks: pollContentToBlocks({
+                    content: content,
+                    options: options
+                })
             })
-        })
-        res.send('you hit create!')
+            await db.createPoll({
+                channel_id: channel_id,
+                content: content,
+                ts: slackMsgRes.ts,
+                options: options,
+                multivote: false,
+            })
+            res.send('you hit create!')
+        } catch (e) {
+            console.error(e);
+            res.sendStatus(500);
+        }
     })
 
     app.post('/vote', async (req: Request, res: Response) => {
@@ -67,7 +64,13 @@ async function main(): Promise<void> {
         const channel_id: string = payload.container.channel_id;
 
         try {
+            const poll = await db.getPoll(channel_id, ts);
             await db.vote(channel_id, ts, user, option_id);
+            await slackClient.chat.update({
+                channel: channel_id,
+                ts: ts,
+                blocks: pollContentToBlocks(poll)
+            })
             res.send('');
         } catch (e) {
             console.error(e);
