@@ -1,4 +1,4 @@
-import SQL from 'sql-template-strings';
+import SQL from "sql-template-strings";
 import * as sqlite from "sqlite";
 
 export type NewPoll = {
@@ -37,7 +37,7 @@ export class Storage {
         this.db = db;
     }
 
-    async createPoll(poll: NewPoll): Promise<ExistingPoll> {
+    async createPoll(poll: NewPoll): Promise<void> {
         await this.db.run(SQL`
 INSERT INTO poll (channel_id, ts, content, multivote)
 VALUES (${poll.channel_id}, ${poll.ts}, ${poll.content}, ${poll.multivote})
@@ -48,18 +48,6 @@ INSERT INTO option (channel_id, ts, option_id, content)
 VALUES (${poll.channel_id}, ${poll.ts}, ${index}, ${option.content})
 `);
         }));
-        return {
-            channel_id: poll.channel_id,
-            ts: poll.ts,
-            content: poll.content,
-            multivote: poll.multivote,
-            options: poll.options.map((option) => {
-                return {
-                    content: option.content,
-                    votes: [],
-                };
-            }),
-        };
     }
 
     async getPoll(channel_id: string, ts: string): Promise<ExistingPoll> {
