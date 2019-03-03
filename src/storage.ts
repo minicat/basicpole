@@ -90,13 +90,14 @@ VALUES (${poll.channel_id}, ${poll.ts}, ${index}, ${option.content})
     }
 
     async vote(channel_id: string, ts: string, user: User, option_id: number): Promise<void> {
-        const multivote = await this.db.get(SQL`SELECT multivote FROM poll WHERE channel_id = ${channel_id} AND ts = ${ts}`);
-        if (multivote === undefined) {
+        const r = await this.db.get(SQL`SELECT multivote FROM poll WHERE channel_id = ${channel_id} AND ts = ${ts}`);
+        if (r === undefined) {
             throw new NoSuchPollException("No such poll");
         }
+        const multivote = !!r.multivote;
         // this is racy but w/e, it's the user's fault if they click too fast
-        const has_existing_vote: number = await this.db.get(SQL`
-SELECT COUNT(*) FROM vote
+        const { has_existing_vote } = await this.db.get(SQL`
+SELECT COUNT(*) AS has_existing_vote FROM vote
 WHERE channel_id = ${channel_id}
 AND ts = ${ts}
 AND user = ${user}
