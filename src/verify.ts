@@ -10,7 +10,7 @@ export function verifier(secret: string): (request: Request, response: Response,
             response.sendStatus(400);
             return;
         }
-        if (Math.abs(Date.now() - (+request_ts)) > 60 * 5) {
+        if (Math.abs(Date.now() / 1000 - (+request_ts)) > 60 * 5) {
             // timestamp too far
             response.sendStatus(400);
             return;
