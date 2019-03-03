@@ -24,11 +24,13 @@ CREATE TABLE vote (
   ts TEXT,
   option_id INTEGER,
   user TEXT,
+  multivote BOOLEAN,
   PRIMARY KEY(channel_id, ts, option_id, user)
-  FOREIGN KEY(channel_id, ts) REFERENCES poll(channel_id, ts)
+  FOREIGN KEY(channel_id, ts, option_id) REFERENCES option(channel_id, ts, option_id)
 );
 
 CREATE INDEX vote_by_user ON vote (channel_id, ts, user, option_id);
+CREATE UNIQUE INDEX single_vote ON vote (channel_id, ts, user) WHERE NOT multivote;
 
 
 -- Down

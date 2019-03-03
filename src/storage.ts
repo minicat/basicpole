@@ -88,10 +88,45 @@ VALUES (${poll.channel_id}, ${poll.ts}, ${index}, ${option.content})
             }),
         };
     }
+
+    async vote(channel_id: string, ts: string, user: User, option_id: number): Promise<void> {
+        const multivote = await this.db.get(SQL`SELECT multivote FROM poll WHERE channel_id = ${channel_id} AND ts = ${ts}`);
+        if (multivote === undefined) {
+            throw new NoSuchPollException("No such poll");
+        }
+        // this is racy but w/e, it's the user's fault if they click too fast
+        const has_existing_vote: number = await this.db.get(SQL`
+SELECT COUNT(*) FROM vote
+WHERE channel_id = ${channel_id}
+AND ts = ${ts}
+AND user = ${user}
+AND option_id = ${option_id}
+`);
+        if (has_existing_vote) {
+            // un-vote
+            await this.db.run(SQL`
+DELETE FROM vote
+WHERE channel_id = ${channel_id}
+AND ts = ${ts}
+AND user = ${user}
+AND option_id = ${option_id}
+`);
+        } else {
+            // arcane bullshit to atomically change the user's vote if they've already voted in a non-multivote poll
+            await this.db.run(SQL`
+INSERT INTO vote
+(channel_id, ts, option_id, user, multivote)
+VALUES (${channel_id}, ${ts}, ${option_id}, ${user}, ${multivote})
+ON CONFLICT (channel_id, ts, user) WHERE NOT multivote
+DO UPDATE SET option_id = ${option_id}
+`);
+        }
+    }
 }
 
 export async function createStorage(file: string): Promise<Storage> {
     const db = await sqlite.open(file, { promise: Promise });
     await db.migrate({});
+    await db.run(SQL`PRAGMA foreign_keys = ON;`);
     return new Storage(db);
 }
