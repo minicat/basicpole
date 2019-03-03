@@ -67,14 +67,16 @@ async function main(): Promise<void> {
         const channel_id: string = payload.container.channel_id;
 
         try {
-            await db.vote(channel_id, ts, user, option_id);
-            const poll = await db.getPoll(channel_id, ts);
-            await slackClient.chat.update({
-                channel: channel_id,
-                ts: ts,
-                blocks: pollContentToBlocks(poll),
-                text: '',
-            })
+            await postMutex.enqueue(channel_id + ':' + ts, async () => {
+                await db.vote(channel_id, ts, user, option_id);
+                const poll = await db.getPoll(channel_id, ts);
+                await slackClient.chat.update({
+                    channel: channel_id,
+                    ts: ts,
+                    blocks: pollContentToBlocks(poll),
+                    text: '',
+                })
+            });
             res.send('');
         } catch (e) {
             console.error(e);
