@@ -1,12 +1,13 @@
 import bodyParser from "body-parser";
 import express from "express";
-import { Application, Request, Response } from "express";
+import {Application, Request, Response} from "express";
 import {WebClient} from "@slack/client";
 
 import {parsePollText, pollContentToBlocks} from "./helpers";
 import * as storage from "./storage";
 import {Mutex} from "./mutex";
-import {OAUTH_TOKEN} from "./config";
+import {verifier} from "./verify";
+import {OAUTH_TOKEN, SIGNING_SECRET} from "./config";
 
 async function main(): Promise<void> {
     const app: Application = express();
@@ -14,12 +15,18 @@ async function main(): Promise<void> {
     const db: storage.Storage = await storage.createStorage(process.env.DB || ':memory:');
     const slackClient = new WebClient(OAUTH_TOKEN);
     const postMutex: Mutex = new Mutex();
+    const verify = verifier(SIGNING_SECRET);
 
     // for parsing application/x-www-form-urlencoded - sent to slash commands/button clicks
-    app.use(bodyParser.urlencoded({extended: true}));
+    // app.use(bodyParser.urlencoded({extended: true}));
 
     app.get('/', (req: Request, res: Response) => res.send('Hello World!'))
 
+    // XXX: megajank
+    app.use('/create', verify);
+    app.use('/vote', verify);
+
+    app.use(bodyParser.urlencoded({extended: true}));
     app.post('/create', async (req: Request, res: Response) => {
         // req has: channel_id, user_id, text (full command text)
         console.log(req.body);
@@ -54,7 +61,7 @@ async function main(): Promise<void> {
             console.error(e);
             res.sendStatus(500);
         }
-    })
+    });
 
     app.post('/vote', async (req: Request, res: Response) => {
         // req has `payload` parameter (parse as json) that corresponds to the button clicked
@@ -82,9 +89,10 @@ async function main(): Promise<void> {
             console.error(e);
             res.sendStatus(500);
         }
-    })
+    });
 
-    app.listen(port, () => console.log(`BASIC POLE listening on port ${port}!`))
+    await app.listen(port);
+    console.log(`BASIC POLE listening on port ${port}!`);
 }
 
 main()
