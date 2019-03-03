@@ -30,7 +30,7 @@ async function main(): Promise<void> {
 
         const parsedText = parsePollText(req.body.text);
         if (parsedText === undefined) {
-            res.sendStatus(500);
+            res.send("Sorry, your syntax wasn't understood.");
             return;
         }
         const {content, options} = parsedText;
