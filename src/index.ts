@@ -3,7 +3,7 @@ import express from "express";
 import { Application, Request, Response } from "express";
 import {WebClient} from "@slack/client";
 
-import {pollContentToBlocks} from "./helpers";
+import {parsePollText, pollContentToBlocks} from "./helpers";
 import * as storage from "./storage";
 import {Mutex} from "./mutex";
 import {OAUTH_TOKEN} from "./config";
@@ -24,12 +24,12 @@ async function main(): Promise<void> {
         // req has: channel_id, user_id, text (full command text)
         console.log(req.body);
 
-        // trim quotation marks
-        const text = req.body.text.split(' ').map((part: string) => part.substring(1, part.length - 1));
-        const content = text[0];
-        const options = text.slice(1).map((content: string) => {
-            return { content };
-        });
+        const parsedText = parsePollText(req.body.text);
+        if (parsedText === undefined) {
+            res.sendStatus(500);
+            return;
+        }
+        const {content, options} = parsedText;
 
         const channel_id = req.body.channel_id;
 

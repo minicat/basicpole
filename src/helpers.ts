@@ -8,15 +8,57 @@ function numberToEmojiString(n: number) {
     return emojiString;
 }
 
+export function parsePollText(text: string): Poll | undefined {
+    // TODO: fix me :(  handle multiple spaces in between options, invalid input at end, etc
+    const parts = [];
+
+    const betterText = text.replace(/[“”‘’']/g,'"');
+
+    if (betterText[0] !== '"') {
+        return undefined;
+    }
+
+    let i = 1;
+    let lastStart = 1;
+    while (i < betterText.length) {
+        if (betterText[i] === '"') {
+            if (i - lastStart === 0) {
+                return undefined; // empty string input
+            }
+            parts.push(betterText.substring(lastStart, i));
+            // go past the space and next open, if we can
+            if (i == betterText.length - 1) break;
+            // "a" "b"
+            lastStart = i + 3;
+            i += 3;
+        } else {
+            i += 1;
+        }
+    }
+    if (parts.length < 2) {
+        return undefined;
+    }
+
+    return {
+        content: parts[0],
+        options: parts.slice(1).map((content: string) => {
+            return {
+                content: content,
+                votes: [],
+            };
+        })
+    }
+}
+
 export type Poll = {
     content: string,
     options: Option[],
-}
+};
 
 export type Option = {
     content: string,
     votes: User[],
-}
+};
 
 export type User = string;
 
