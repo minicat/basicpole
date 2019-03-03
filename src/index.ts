@@ -15,18 +15,15 @@ async function main(): Promise<void> {
     const db: storage.Storage = await storage.createStorage(process.env.DB || ':memory:');
     const slackClient = new WebClient(OAUTH_TOKEN);
     const postMutex: Mutex = new Mutex();
-    const verify = verifier(SIGNING_SECRET);
 
     // for parsing application/x-www-form-urlencoded - sent to slash commands/button clicks
-    // app.use(bodyParser.urlencoded({extended: true}));
+    app.use(bodyParser.urlencoded({
+        extended: true,
+        verify: verifier(SIGNING_SECRET),
+    }));
 
     app.get('/', (req: Request, res: Response) => res.send('Hello World!'))
 
-    // XXX: megajank
-    app.use('/create', verify);
-    app.use('/vote', verify);
-
-    app.use(bodyParser.urlencoded({extended: true}));
     app.post('/create', async (req: Request, res: Response) => {
         // req has: channel_id, user_id, text (full command text)
         console.log(req.body);
