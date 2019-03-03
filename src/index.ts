@@ -54,7 +54,7 @@ async function main(): Promise<void> {
                     anonymous = true;
                     break;
                 default:
-                    res.send("Unknown flag: " + flag);
+                    res.send(`Unknown flag: ${flag}. Supported flags are --single-vote and --anonymous`);
                     return;
             }
         }
