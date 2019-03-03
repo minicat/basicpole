@@ -27,18 +27,19 @@ async function main(): Promise<void> {
         // trim quotation marks
         const text = req.body.text.split(' ').map((part: string) => part.substring(1, part.length - 1));
         const content = text[0];
-        const options = text.slice(1);
+        const options = text.slice(1).map((content: string) => { content });
 
         const channel_id = req.body.channel_id;
 
         try {
-            const slackMsgRes = await slackClient.chat.postMessage({
+            const slackMsgRes: any = await slackClient.chat.postMessage({
                 channel: channel_id,
+                text: '',
                 blocks: pollContentToBlocks({
                     content: content,
-                    options: options
+                    options: options,
                 })
-            })
+            });
             await db.createPoll({
                 channel_id: channel_id,
                 content: content,
@@ -69,7 +70,8 @@ async function main(): Promise<void> {
             await slackClient.chat.update({
                 channel: channel_id,
                 ts: ts,
-                blocks: pollContentToBlocks(poll)
+                blocks: pollContentToBlocks(poll),
+                text: '',
             })
             res.send('');
         } catch (e) {
