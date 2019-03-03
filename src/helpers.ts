@@ -21,7 +21,7 @@ export type Option = {
 export type User = string;
 
 function renderUser(user: User): string {
-    return "<@${user}>";
+    return `<@${user}>`;
 }
 
 export function pollContentToBlocks(poll: Poll) {
