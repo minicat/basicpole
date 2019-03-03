@@ -35,6 +35,11 @@ async function main(): Promise<void> {
         }
         const {content, options} = parsedText;
 
+        if (options.length < 1) {
+            res.send("You need at least one option.");
+            return;
+        }
+
         const channel_id = req.body.channel_id;
 
         try {
