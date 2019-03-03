@@ -27,7 +27,9 @@ async function main(): Promise<void> {
         // trim quotation marks
         const text = req.body.text.split(' ').map((part: string) => part.substring(1, part.length - 1));
         const content = text[0];
-        const options = text.slice(1).map((content: string) => { content });
+        const options = text.slice(1).map((content: string) => {
+            return { content };
+        });
 
         const channel_id = req.body.channel_id;
 
