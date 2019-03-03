@@ -5,36 +5,52 @@ import { Application, Request, Response } from "express";
 import {pollContentToBlocks} from "./helpers";
 import * as storage from "./storage";
 
+const {WebClient} = require('@slack/client');
+
 async function main(): Promise<void> {
     const app: Application = express();
     const port: number = +(process.env.PORT || 8001);
     const db: storage.Storage = await storage.createStorage(process.env.DB || ':memory:');
+    const slackClient = new WebClient(process.env.OAUTH_TOKEN);
 
     // for parsing application/x-www-form-urlencoded - sent to slash commands/button clicks
     app.use(bodyParser.urlencoded({extended: true}));
 
     app.get('/', (req: Request, res: Response) => res.send('Hello World!'))
 
-    app.post('/create', (req: Request, res: Response) => {
+    app.post('/create', async (req: Request, res: Response) => {
         // req has: channel_id, user_id, text (full command text)
         console.log(req.body);
 
-        console.log(JSON.stringify(pollContentToBlocks({
-            channel_id: "1",
-            ts: "123",
-            content: "DO YOU LIKE PUSHEEN",
-            multivote: false,
-            options: [
-                {
-                    content: "YES",
-                    votes: ['minicat', 'goffrie']
-                },
-                {
-                    content: "NO",
-                    votes: []
-                }
-            ]
-        }), null, '  '));
+        // trim quotation marks
+        const text = req.body.split(' ').map((part: string) => part.substring(1, part.length - 1));
+        const content = text[0];
+        const options = text.slice(1);
+
+        // console.log(JSON.stringify(pollContentToBlocks({
+        //     channel_id: "1",
+        //     ts: "123",
+        //     content: "DO YOU LIKE PUSHEEN",
+        //     multivote: false,
+        //     options: [
+        //         {
+        //             content: "YES",
+        //             votes: ['minicat', 'goffrie']
+        //         },
+        //         {
+        //             content: "NO",
+        //             votes: []
+        //         }
+        //     ]
+        // }), null, '  '));
+
+        const slackMsgRes = await slackClient.chat.postMessage({
+            channel: req.body.channel_id,
+            blocks: pollContentToBlocks({
+                content: content,
+                options: options
+            })
+        })
         res.send('you hit create!')
     })
 

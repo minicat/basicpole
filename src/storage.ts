@@ -1,16 +1,12 @@
 import SQL from "sql-template-strings";
 import * as sqlite from "sqlite";
 
-// Typing for _before_ we've sent the initial message to Slack.
-export type NewPollContent = {
+export type NewPoll = {
     channel_id: string,
+    ts: string,
     content: string,
     options: NewOption[],
     multivote: boolean,
-};
-
-export type NewPoll = NewPollContent & {
-    ts: string,
 };
 
 export type NewOption = {

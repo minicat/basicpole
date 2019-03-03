@@ -1,5 +1,3 @@
-import {ExistingPoll, ExistingOption, NewOption, NewPoll, NewPollContent} from './storage';
-
 const EMOJI_NUMBERS = ["0️⃣", "1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣", "6️⃣", "7️⃣", "8️⃣", "9️⃣"];
 
 function numberToEmojiString(n: number) {
@@ -44,26 +42,4 @@ export function pollContentToBlocks(poll: any) {
             "elements": actionButtons
         }
     ]
-}
-
-export function postInitialPoll(poll: NewPollContent, token: string): NewPoll {
-    const stuff = {
-        token: token,
-        channel: poll.channel_id,
-        blocks: []
-
-    }
-
-    return {
-        channel_id: poll.channel_id,
-        ts: 'TODO',
-        content: poll.content,
-        options: poll.options,
-        multivote: poll.multivote
-    }
-
-}
-
-export function updatePoll(poll: ExistingPoll) {
-
 }
