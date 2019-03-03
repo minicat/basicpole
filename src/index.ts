@@ -28,27 +28,35 @@ async function main(): Promise<void> {
         // req has: channel_id, user_id, text (full command text)
         console.log(req.body);
 
-        // XXX: : D
         let text = req.body.text;
-        let multivote = true;
-        if (text.endsWith('--single-vote')) {
-            text = text.substring(0, text.length - 13).trim();
-            multivote = false;
-        } else if (text.startsWith('--single-vote')) {
-            text = text.substring(13).trim();
-            multivote = false;
-        }
 
         const parsedText = parsePollText(text);
         if (parsedText === undefined) {
             res.send("Sorry, your syntax wasn't understood.");
             return;
         }
-        const {content, options} = parsedText;
+
+        const {content, options, flags} = parsedText;
 
         if (options.length < 1) {
             res.send("You need at least one option.");
             return;
+        }
+
+        let multivote = true;
+        let anonymous = false;
+        for (const flag of flags) {
+            switch (flag) {
+                case "--single-vote":
+                    multivote = false;
+                    break;
+                case "--anonymous":
+                    anonymous = true;
+                    break;
+                default:
+                    res.send("Unknown flag: " + flag);
+                    return;
+            }
         }
 
         const channel_id = req.body.channel_id;
@@ -60,6 +68,7 @@ async function main(): Promise<void> {
                 blocks: pollContentToBlocks({
                     content: content,
                     options: options,
+                    anonymous,
                 })
             });
             await db.createPoll({
@@ -68,6 +77,7 @@ async function main(): Promise<void> {
                 ts: slackMsgRes.ts,
                 options: options,
                 multivote: multivote,
+                anonymous,
             });
             res.send('');
         } catch (e) {

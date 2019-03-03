@@ -16,13 +16,12 @@ function numberToEmojiString(n: number) {
     return emojiString;
 }
 
-export function parsePollText(text: string): Poll | undefined {
+export function parsePollText(text: string): { content: string, options: Option[], flags: string[] } | undefined {
     const parts = [];
+    const flags = [];
 
-    if (!(QUOTE_PAIRS.hasOwnProperty(text[0]))) return undefined;
-
-    let i = 1;
-    let openQuote = text[0];
+    let i = 0;
+    let openQuote = '';
     let openQuoteI = 0;
 
     while (i < text.length) {
@@ -33,6 +32,12 @@ export function parsePollText(text: string): Poll | undefined {
             if (QUOTE_PAIRS.hasOwnProperty(text[i])) {
                 openQuote = text[i];
                 openQuoteI = i;
+            } else if (text[i] == '-') {
+                // parse flag...
+                let flagEnd = text.indexOf(' ', i);
+                if (flagEnd === -1) flagEnd = text.length;
+                flags.push(text.substring(i, flagEnd));
+                i = flagEnd;
             } else if (text[i] != ' ') {
                 return undefined;
             }
@@ -50,13 +55,15 @@ export function parsePollText(text: string): Poll | undefined {
                 content: content,
                 votes: [],
             };
-        })
+        }),
+        flags,
     }
 }
 
 export type Poll = {
     content: string,
     options: Option[],
+    anonymous: boolean,
 };
 
 export type Option = {
@@ -74,7 +81,11 @@ export function pollContentToBlocks(poll: Poll): KnownBlock[] {
     // Formats an existing poll into the content of the `blocks` section for postMessage/update
     const renderedOptions = poll.options.map((option, i) => {
         const votes = 'votes' in option ? option.votes : [];  // waaaaaaahhhhh
-        return `${numberToEmojiString(i + 1)} ${option.content} \`${votes.length}\`\n ${votes.map(renderUser).join(' ')}`
+        let text = `${numberToEmojiString(i + 1)} ${option.content} \`${votes.length}\``;
+        if (!poll.anonymous) {
+            text += `\n${votes.map(renderUser).join(' ')}`;
+        }
+        return text;
     });
 
     const actionButtons = poll.options.map((_, i) => {

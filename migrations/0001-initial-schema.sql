@@ -5,6 +5,7 @@ CREATE TABLE poll (
   content TEXT,
 
   multivote BOOLEAN,
+  anonymous BOOLEAN,
 
   PRIMARY KEY(channel_id, ts)
 );

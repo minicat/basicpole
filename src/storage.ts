@@ -7,6 +7,7 @@ export type NewPoll = {
     content: string,
     options: NewOption[],
     multivote: boolean,
+    anonymous: boolean,
 };
 
 export type NewOption = {
@@ -19,6 +20,7 @@ export type ExistingPoll = {
     content: string,
     options: ExistingOption[],
     multivote: boolean,
+    anonymous: boolean,
 };
 
 export type ExistingOption = {
@@ -39,8 +41,8 @@ export class Storage {
 
     async createPoll(poll: NewPoll): Promise<void> {
         await this.db.run(SQL`
-INSERT INTO poll (channel_id, ts, content, multivote)
-VALUES (${poll.channel_id}, ${poll.ts}, ${poll.content}, ${poll.multivote})
+INSERT INTO poll (channel_id, ts, content, multivote, anonymous)
+VALUES (${poll.channel_id}, ${poll.ts}, ${poll.content}, ${poll.multivote}, ${poll.anonymous})
 `);
         await Promise.all(poll.options.map((option: NewOption, index: number) => {
             this.db.run(SQL`
@@ -52,7 +54,7 @@ VALUES (${poll.channel_id}, ${poll.ts}, ${index}, ${option.content})
 
     async getPoll(channel_id: string, ts: string): Promise<ExistingPoll> {
         const [poll, options, votes] = await Promise.all([
-            this.db.get(SQL`SELECT content, multivote FROM poll WHERE channel_id = ${channel_id} AND ts = ${ts}`),
+            this.db.get(SQL`SELECT content, multivote, anonymous FROM poll WHERE channel_id = ${channel_id} AND ts = ${ts}`),
             this.db.all(SQL`SELECT option_id, content FROM option WHERE channel_id = ${channel_id} AND ts = ${ts} ORDER BY option_id ASC`),
             this.db.all(SQL`SELECT option_id, user FROM vote WHERE channel_id = ${channel_id} AND ts = ${ts} ORDER BY option_id ASC, user ASC`),
         ]);
@@ -68,6 +70,7 @@ VALUES (${poll.channel_id}, ${poll.ts}, ${index}, ${option.content})
             ts,
             content: poll.content,
             multivote: !!poll.multivote,
+            anonymous: !!poll.anonymous,
             options: options.map((option, id) => {
                 return {
                     content: option.content,
