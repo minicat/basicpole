@@ -2,6 +2,7 @@ import bodyParser from "body-parser";
 import * as http from "http";
 
 import express = require('express');
+import * as storage from "./storage";
 
 const app = express()
 const port = 8001;
