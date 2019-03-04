@@ -9,7 +9,7 @@ import {Mutex} from "./mutex";
 import {verifier} from "./verify";
 import {OAUTH_TOKEN, SIGNING_SECRET} from "./config";
 
-const USAGE = 'Usage: /pole [--single-vote] [--anonymous] "Poll text" "Option 1" "Option 2" [...]"';
+const USAGE = 'Usage: /pole [--single-vote] [--anonymous] "Poll text" "Option 1" "Option 2" [...]';
 
 async function main(): Promise<void> {
     const app: Application = express();
