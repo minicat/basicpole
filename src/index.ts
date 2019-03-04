@@ -68,8 +68,9 @@ async function main(): Promise<void> {
 
         const channel_id = req.body.channel_id;
 
+        let slackMsgRes: any;
         try {
-            const slackMsgRes: any = await slackClient.chat.postMessage({
+            slackMsgRes = await slackClient.chat.postMessage({
                 channel: channel_id,
                 text: '',
                 blocks: pollContentToBlocks({
@@ -78,6 +79,18 @@ async function main(): Promise<void> {
                     anonymous,
                 })
             });
+        } catch (e) {
+            if (e.code == ErrorCode.PlatformError && e.data.error == 'channel_not_found') {
+                res.send("Sorry, I can't access that channel. Basic Pole only works in public channels for now.");
+            } else if (e.code == ErrorCode.PlatformError && e.data.error == 'invalid_blocks') {
+                res.send("Sorry, I couldn't create the poll. It was probably too large.");
+            } else {
+                console.error(e);
+                res.send("Sorry, something went wrong posting to Slack.");
+            }
+            return;
+        }
+        try {
             await db.createPoll({
                 channel_id: channel_id,
                 content: content,
@@ -88,12 +101,9 @@ async function main(): Promise<void> {
             });
             res.send('');
         } catch (e) {
-            if (e.code == ErrorCode.PlatformError && e.data && e.data.error == 'channel_not_found') {
-                res.send("Sorry, I can't access that channel. Basic Pole only works in public channels for now.");
-            } else {
-                console.error(e);
-                res.sendStatus(500);
-            }
+            console.error(e);
+            res.sendStatus(500);
+            return;
         }
     });
 
