@@ -9,6 +9,8 @@ import {Mutex} from "./mutex";
 import {verifier} from "./verify";
 import {OAUTH_TOKEN, SIGNING_SECRET} from "./config";
 
+const USAGE = 'Usage: /pole [--single-vote] [--anonymous] "Poll text" "Option 1" "Option 2" [...]"';
+
 async function main(): Promise<void> {
     const app: Application = express();
     const port: number = +(process.env.PORT || 8001);
@@ -30,16 +32,21 @@ async function main(): Promise<void> {
 
         let text = req.body.text;
 
+        if (text === 'help' || text === '--help') {
+            res.send(USAGE);
+            return;
+        }
+
         const parsedText = parsePollText(text);
         if (parsedText === undefined) {
-            res.send("Sorry, your syntax wasn't understood.");
+            res.send(`Sorry, your syntax wasn't understood.\n${USAGE}`);
             return;
         }
 
         const {content, options, flags} = parsedText;
 
         if (options.length < 1) {
-            res.send("You need at least one option.");
+            res.send(`You need at least one option.\n${USAGE}`);
             return;
         }
 
@@ -54,7 +61,7 @@ async function main(): Promise<void> {
                     anonymous = true;
                     break;
                 default:
-                    res.send(`Unknown flag: ${flag}. Supported flags are --single-vote and --anonymous`);
+                    res.send(`Unknown flag: ${flag}.\n${USAGE}`);
                     return;
             }
         }
