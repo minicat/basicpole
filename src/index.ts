@@ -1,7 +1,7 @@
 import bodyParser from "body-parser";
 import express from "express";
 import {Application, Request, Response} from "express";
-import {WebClient} from "@slack/client";
+import {WebClient, ErrorCode} from "@slack/client";
 
 import {parsePollText, pollContentToBlocks} from "./helpers";
 import * as storage from "./storage";
@@ -26,7 +26,7 @@ async function main(): Promise<void> {
 
     app.post('/create', async (req: Request, res: Response) => {
         // req has: channel_id, user_id, text (full command text)
-        console.log(req.body);
+        // console.log(req.body);
 
         let text = req.body.text;
 
@@ -81,8 +81,12 @@ async function main(): Promise<void> {
             });
             res.send('');
         } catch (e) {
-            console.error(e);
-            res.sendStatus(500);
+            if (e.code == ErrorCode.PlatformError && e.data && e.data.error == 'channel_not_found') {
+                res.send("Sorry, I can't access that channel. Basic Pole only works in public channels for now.");
+            } else {
+                console.error(e);
+                res.sendStatus(500);
+            }
         }
     });
 
