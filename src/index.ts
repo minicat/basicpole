@@ -78,6 +78,7 @@ async function main(): Promise<void> {
                     content,
                     options,
                     anonymous,
+                    multivote,
                     user,
                 })
             });

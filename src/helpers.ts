@@ -66,6 +66,7 @@ export type Poll = {
     content: string,
     options: Option[],
     anonymous: boolean,
+    multivote: boolean,
     user: User | null,
 };
 
@@ -134,6 +135,9 @@ export function pollContentToBlocks(poll: Poll): KnownBlock[] {
     const msgs = [];
     if (poll.user) {
         msgs.push(`Poll added by <@${poll.user}>.`);
+    }
+    if (!poll.multivote) {
+        msgs.push('Choose one.');
     }
     if (poll.anonymous) {
         msgs.push('Voting is anonymous.');
