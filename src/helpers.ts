@@ -6,7 +6,9 @@ const QUOTE_PAIRS: {[key: string] : string} = {
     '“': '”',
     '"': '"',
     "'": "'"
-}
+};
+
+const EMOJI_REGEX = /^:\w+:$/;
 
 function numberToEmojiString(n: number) {
     let emojiString = '';
@@ -81,14 +83,16 @@ export function splitOptionContent(content: string, i: number): {emoji: string, 
     // if option.content starts with a :slack_emoji:, use that as the emoji
     // it's also OK for the entire thing to be an emoji.
     // separated for easier testing!
-    const spaceIndex = content.indexOf(' ');
-
-    if (spaceIndex === -1 && content[0] == ':' && content[content.length - 1] == ':') {
+    if (EMOJI_REGEX.test(content)) {
         // entire content is emoji
         return {emoji: content, content: ''};
-    } else if (spaceIndex !== -1 && /^:\w+:$/.test(content.substring(0, spaceIndex))) {
+    }
+
+    const spaceIndex = content.indexOf(' ');
+    if (spaceIndex !== -1 && EMOJI_REGEX.test(content.substring(0, spaceIndex))) {
         return {emoji: content.substring(0, spaceIndex), content: content.substring(spaceIndex + 1)};
     }
+
     return {emoji: numberToEmojiString(i + 1), content: content};
 }
 

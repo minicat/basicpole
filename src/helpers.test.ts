@@ -45,4 +45,7 @@ test('splitOptionContent', () => {
 
     // only an emoji
     expect(splitOptionContent(":pusheen:", 99)).toEqual({emoji: ":pusheen:", content: ""});
+
+    // fake emoji. don't be tricked!!!
+    expect(splitOptionContent(":pusheen:pusheen:", 99)).toEqual({emoji: "1️⃣0️⃣0️⃣", content: ":pusheen:pusheen:"});
 })
