@@ -5,7 +5,8 @@ const EMOJI_NUMBERS = ["0️⃣", "1️⃣", "2️⃣", "3️⃣", "4️⃣", "5
 const QUOTE_PAIRS: {[key: string] : string} = {
     '“': '”',
     '"': '"',
-    "'": "'"
+    "'": "'",
+    "‘": "’"
 };
 
 const EMOJI_REGEX = /^:[\w-]+:$/;
