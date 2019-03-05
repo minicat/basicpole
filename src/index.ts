@@ -30,7 +30,8 @@ async function main(): Promise<void> {
         // req has: channel_id, user_id, text (full command text)
         // console.log(req.body);
 
-        let text = req.body.text;
+        const user: string = req.body.user_id;
+        const text = req.body.text;
 
         if (text === 'help' || text === '--help') {
             res.send(USAGE);
@@ -74,9 +75,10 @@ async function main(): Promise<void> {
                 channel: channel_id,
                 text: '',
                 blocks: pollContentToBlocks({
-                    content: content,
-                    options: options,
+                    content,
+                    options,
                     anonymous,
+                    user,
                 })
             });
         } catch (e) {
@@ -92,12 +94,13 @@ async function main(): Promise<void> {
         }
         try {
             await db.createPoll({
-                channel_id: channel_id,
-                content: content,
+                channel_id,
+                content,
                 ts: slackMsgRes.ts,
-                options: options,
-                multivote: multivote,
+                options,
+                multivote,
                 anonymous,
+                user,
             });
             res.send('');
         } catch (e) {

@@ -66,6 +66,7 @@ export type Poll = {
     content: string,
     options: Option[],
     anonymous: boolean,
+    user: User | null,
 };
 
 export type Option = {
@@ -130,12 +131,21 @@ export function pollContentToBlocks(poll: Poll): KnownBlock[] {
         }
     })
 
+    const msgs = [];
+    if (poll.user) {
+        msgs.push(`Poll added by <@{$poll.user}>.`);
+    }
+    if (poll.anonymous) {
+        msgs.push('Voting is anonymous.');
+    }
+
     const header: KnownBlock[] = [
         {
             "type": "section",
             "text": {
                 "type": "mrkdwn",
-                "text": `*${poll.content}*`
+                "text": (poll.content ? `*${poll.content}*` : '')
+                    + (msgs.length > 0 ? '_(' + msgs.join(' ') + ')_' : ''),
             }
         }
     ];
