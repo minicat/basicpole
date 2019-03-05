@@ -34,9 +34,11 @@ test('splitOptionContent', () => {
     expect(splitOptionContent("cats are gr8 :pusheen:", 99)).toEqual({emoji: "1️⃣0️⃣0️⃣", content: "cats are gr8 :pusheen:"});
 
     // emoji at start
-    expect(splitOptionContent(":pusheen: cats are gr8", 99)).toEqual({emoji: ":pusheen:", content: "cats are gr8"});
+    expect(splitOptionContent(":pusheen: cats are gr8", 99)).toEqual({emoji: ":pusheen:", content: " cats are gr8"});
+    // no space between emoji and text is OK too
+    expect(splitOptionContent(":pusheen:cats are gr8", 99)).toEqual({emoji: ":pusheen:", content: "cats are gr8"});
     // rly short emoji at start
-    expect(splitOptionContent(":f: dogs r worst", 99)).toEqual({emoji: ":f:", content: "dogs r worst"});
+    expect(splitOptionContent(":f: dogs r worst", 99)).toEqual({emoji: ":f:", content: " dogs r worst"});
 
     // not an emoji at start
     expect(splitOptionContent(":) hello", 122)).toEqual({emoji: "1️⃣2️⃣3️⃣", content: ":) hello"});
@@ -46,6 +48,12 @@ test('splitOptionContent', () => {
     // only an emoji
     expect(splitOptionContent(":pusheen:", 99)).toEqual({emoji: ":pusheen:", content: ""});
 
+    // two emojis? take first one
+    expect(splitOptionContent(":pusheen::stormy:", 99)).toEqual({emoji: ":pusheen:", content: ":stormy:"});
+
+    // support underscores, hyphens and numbers in emoji text
+    expect(splitOptionContent(":pusheen-123_:", 99)).toEqual({emoji: ":pusheen-123_:", content: ""});
+
     // fake emoji. don't be tricked!!!
-    expect(splitOptionContent(":pusheen:pusheen:", 99)).toEqual({emoji: "1️⃣0️⃣0️⃣", content: ":pusheen:pusheen:"});
+    expect(splitOptionContent(":pusheen!pusheen:", 99)).toEqual({emoji: "1️⃣0️⃣0️⃣", content: ":pusheen!pusheen:"});
 })
