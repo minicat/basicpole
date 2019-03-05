@@ -83,7 +83,8 @@ export function pollContentToBlocks(poll: Poll): KnownBlock[] {
         // if option.content starts with a :slack_emoji:, use that as the emoji
         const content = option.content;
         const spaceIndex = content.indexOf(' ');
-        if (spaceIndex != -1 && content[0] == ':' && content[spaceIndex - 1] == ':') {
+        // must have a space that's at least 3 in (two colons and a chr in between)
+        if (spaceIndex != -1 && spaceIndex > 3 && content[0] == ':' && content[spaceIndex - 1] == ':') {
             return {
                 emoji: content.substring(0, spaceIndex),
                 content: content.substring(spaceIndex + 1),
