@@ -79,21 +79,34 @@ function renderUser(user: User): string {
 
 export function pollContentToBlocks(poll: Poll): KnownBlock[] {
     // Formats an existing poll into the content of the `blocks` section for postMessage/update
-    const renderedOptions = poll.options.map((option, i) => {
-        const votes = 'votes' in option ? option.votes : [];  // waaaaaaahhhhh
-        let text = `${numberToEmojiString(i + 1)} ${option.content} \`${votes.length}\``;
+    const optionsWithEmoji = poll.options.map((option, i) => {
+        // if option.content starts with a :slack_emoji:, use that as the emoji
+        const content = option.content;
+        const spaceIndex = content.indexOf(' ');
+        if (spaceIndex != -1 && content[0] == ':' && content[spaceIndex - 1] == ':') {
+            return {
+                emoji: content.substring(0, spaceIndex),
+                content: content.substring(spaceIndex + 1),
+                votes: option.votes
+            };
+        }
+        return {emoji: numberToEmojiString(i + 1), content: content, votes: option.votes};
+    })
+
+    const renderedOptions = optionsWithEmoji.map((option) => {
+        let text = `${option.emoji} ${option.content} \`${option.votes.length}\``;
         if (!poll.anonymous) {
-            text += `\n${votes.map(renderUser).join(' ')}`;
+            text += `\n${option.votes.map(renderUser).join(' ')}`;
         }
         return text;
     });
 
-    const actionButtons = poll.options.map((_, i) => {
+    const actionButtons = optionsWithEmoji.map((option, i) => {
         return {
             "type": "button",
             "text": {
                 "type": "plain_text",
-                "text": numberToEmojiString(i + 1),
+                "text": option.emoji,
                 "emoji": true
             },
             "action_id": i.toString(),
