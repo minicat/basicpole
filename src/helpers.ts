@@ -145,7 +145,7 @@ export function pollContentToBlocks(poll: Poll): KnownBlock[] {
             "text": {
                 "type": "mrkdwn",
                 "text": (poll.content ? `*${poll.content}*` : '')
-                    + (msgs.length > 0 ? '_(' + msgs.join(' ') + ')_' : ''),
+                    + (msgs.length > 0 ? ' _(' + msgs.join(' ') + ')_' : ''),
             }
         }
     ];
