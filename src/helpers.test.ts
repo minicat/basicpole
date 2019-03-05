@@ -1,4 +1,4 @@
-import {parsePollText} from "./helpers";
+import {parsePollText, splitOptionContent} from "./helpers";
 
 test('parsePollText', () => {
     // basic case
@@ -25,4 +25,24 @@ test('parsePollText', () => {
     expect(parsePollText('"invalid" invalid "invalid"')).toEqual(undefined);
     // starts with the weird close bracket
     expect(parsePollText('"invalid" ”invalid”')).toEqual(undefined);
+})
+
+test('splitOptionContent', () => {
+    // no emojis in sight
+    expect(splitOptionContent("cats are gr8", 99)).toEqual({emoji: "1️⃣0️⃣0️⃣", content: "cats are gr8"});
+    // emojis not at start - dont use em
+    expect(splitOptionContent("cats are gr8 :pusheen:", 99)).toEqual({emoji: "1️⃣0️⃣0️⃣", content: "cats are gr8 :pusheen:"});
+
+    // emoji at start
+    expect(splitOptionContent(":pusheen: cats are gr8", 99)).toEqual({emoji: ":pusheen:", content: "cats are gr8"});
+    // rly short emoji at start
+    expect(splitOptionContent(":f: dogs r worst", 99)).toEqual({emoji: ":f:", content: "dogs r worst"});
+
+    // not an emoji at start
+    expect(splitOptionContent(":) hello", 122)).toEqual({emoji: "1️⃣2️⃣3️⃣", content: ":) hello"});
+    expect(splitOptionContent(":: hello", 122)).toEqual({emoji: "1️⃣2️⃣3️⃣", content: ":: hello"});
+    expect(splitOptionContent("::: hello", 122)).toEqual({emoji: "1️⃣2️⃣3️⃣", content: "::: hello"});
+
+    // only an emoji
+    expect(splitOptionContent(":pusheen:", 99)).toEqual({emoji: ":pusheen:", content: ""});
 })

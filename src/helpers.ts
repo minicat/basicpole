@@ -77,21 +77,27 @@ function renderUser(user: User): string {
     return `<@${user}>`;
 }
 
+export function splitOptionContent(content: string, i: number): {emoji: string, content: string} {
+    // if option.content starts with a :slack_emoji:, use that as the emoji
+    // it's also OK for the entire thing to be an emoji.
+    // separated for easier testing!
+    const spaceIndex = content.indexOf(' ');
+
+    if (spaceIndex === -1 && content[0] == ':' && content[content.length - 1] == ':') {
+        // entire content is emoji
+        return {emoji: content, content: ''};
+    } else if (spaceIndex !== -1 && /^:\w+:$/.test(content.substring(0, spaceIndex))) {
+        return {emoji: content.substring(0, spaceIndex), content: content.substring(spaceIndex + 1)};
+    }
+    return {emoji: numberToEmojiString(i + 1), content: content};
+}
+
 export function pollContentToBlocks(poll: Poll): KnownBlock[] {
     // Formats an existing poll into the content of the `blocks` section for postMessage/update
     const optionsWithEmoji = poll.options.map((option, i) => {
         // if option.content starts with a :slack_emoji:, use that as the emoji
-        const content = option.content;
-        const spaceIndex = content.indexOf(' ');
-        // must have a space that's at least 3 in (two colons and a chr in between)
-        if (spaceIndex != -1 && spaceIndex > 2 && content[0] == ':' && content[spaceIndex - 1] == ':') {
-            return {
-                emoji: content.substring(0, spaceIndex),
-                content: content.substring(spaceIndex + 1),
-                votes: option.votes
-            };
-        }
-        return {emoji: numberToEmojiString(i + 1), content: content, votes: option.votes};
+        const {emoji, content} = splitOptionContent(option.content, i);
+        return {emoji: emoji, content: content, votes: option.votes};
     })
 
     const renderedOptions = optionsWithEmoji.map((option) => {
