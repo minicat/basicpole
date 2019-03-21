@@ -4,13 +4,17 @@ test('parsePollText', () => {
     // basic case
     expect(parsePollText("'a' 'b' 'c'")).toEqual({content: 'a', options: [{content: 'b', votes: []}, {content: 'c', votes: []}], flags: []});
     // weird quotes
-    expect(parsePollText("'a' \"b\" “c”")).toEqual({content: 'a', options: [{content: 'b', votes: []}, {content: 'c', votes: []}], flags: []});
+    expect(parsePollText("'a' ‘b’ “c”")).toEqual({content: 'a', options: [{content: 'b', votes: []}, {content: 'c', votes: []}], flags: []});
     // more text, with spaces
     expect(parsePollText("“pusheens or fungi?”   “pusheens”   “fungi”")).toEqual({content: 'pusheens or fungi?', options: [{content: 'pusheens', votes: []}, {content: 'fungi', votes: []}], flags: []});
     // contains quotes within text
-    expect(parsePollText("“'pusheens' or \"fungi\"?”   “pusheens”   “fungi”")).toEqual({content: "'pusheens' or \"fungi\"?", options: [{content: 'pusheens', votes: []}, {content: 'fungi', votes: []}], flags: []});
+    expect(parsePollText("“'pusheens' or 'fungi'?”   “pusheens”   “fungi”")).toEqual({content: "'pusheens' or 'fungi'?", options: [{content: 'pusheens', votes: []}, {content: 'fungi', votes: []}], flags: []});
     // emoji support???
     expect(parsePollText("'🐱 or 🍄?' '🐱' '🍄'")).toEqual({content: '🐱 or 🍄?', options: [{content: '🐱', votes: []}, {content: '🍄', votes: []}], flags: []});
+    // replaces all weird quote marks with normal quote marks
+    expect(parsePollText("“‘pusheens‘ or ‘fungi’?”   '“pusheens”'   '“fungi”'")).toEqual({content: "'pusheens' or 'fungi'?", options: [{content: '"pusheens"', votes: []}, {content: '"fungi"', votes: []}], flags: []});
+    // supports mismatching quote marks between normal and weird
+    expect(parsePollText("'a’ ‘b' \"c” “d\"")).toEqual({content: 'a', options: [{content: 'b', votes: []}, {content: 'c', votes: []}, {content: 'd', votes: []}], flags: []});
 
     // flags
     expect(parsePollText("--a 'wtf' --b-or-c 'wtf2'")).toEqual({content: 'wtf', options: [{content: 'wtf2', votes: []}], flags: ['--a', '--b-or-c']});
@@ -23,8 +27,6 @@ test('parsePollText', () => {
     expect(parsePollText('"invalid" "invalid')).toEqual(undefined);
     // has text in between options
     expect(parsePollText('"invalid" invalid "invalid"')).toEqual(undefined);
-    // starts with the weird close bracket
-    expect(parsePollText('"invalid" ”invalid”')).toEqual(undefined);
 })
 
 test('splitOptionContent', () => {

@@ -2,13 +2,6 @@ import { KnownBlock } from "@slack/client";
 
 const EMOJI_NUMBERS = ["0️⃣", "1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣", "6️⃣", "7️⃣", "8️⃣", "9️⃣"];
 
-const QUOTE_PAIRS: {[key: string] : string} = {
-    '“': '”',
-    '"': '"',
-    "'": "'",
-    "‘": "’"
-};
-
 const EMOJI_REGEX = /^:[\w-]+:$/;
 
 function numberToEmojiString(n: number) {
@@ -23,25 +16,29 @@ export function parsePollText(text: string): { content: string, options: Option[
     const parts = [];
     const flags = [];
 
+    // Just replace all of the fancy quotes
+    const fixedText = text.replace(/[‘’]/g, "'").replace(/[“”]/g, '"');
+    console.log(fixedText);
+
     let i = 0;
     let openQuote = '';
     let openQuoteI = 0;
 
-    while (i < text.length) {
-        if (openQuote !== '' && text[i] === QUOTE_PAIRS[openQuote]) {
-            parts.push(text.substring(openQuoteI + 1, i));
+    while (i < fixedText.length) {
+        if (openQuote !== '' && fixedText[i] === openQuote) {
+            parts.push(fixedText.substring(openQuoteI + 1, i));
             openQuote = '';
         } else if (openQuote == '') {
-            if (QUOTE_PAIRS.hasOwnProperty(text[i])) {
-                openQuote = text[i];
+            if (fixedText[i] === '"' || fixedText[i] === "'") {
+                openQuote = fixedText[i];
                 openQuoteI = i;
-            } else if (text[i] == '-') {
+            } else if (fixedText[i] == '-') {
                 // parse flag...
-                let flagEnd = text.indexOf(' ', i);
-                if (flagEnd === -1) flagEnd = text.length;
-                flags.push(text.substring(i, flagEnd));
+                let flagEnd = fixedText.indexOf(' ', i);
+                if (flagEnd === -1) flagEnd = fixedText.length;
+                flags.push(fixedText.substring(i, flagEnd));
                 i = flagEnd;
-            } else if (text[i] != ' ') {
+            } else if (fixedText[i] != ' ') {
                 return undefined;
             }
         }
