@@ -84,7 +84,7 @@ async function main(): Promise<void> {
             });
         } catch (e) {
             if (e.code == ErrorCode.PlatformError && e.data.error == 'channel_not_found') {
-                res.send("Sorry, I can't access that channel. Basic Pole only works in public channels for now.");
+                res.send("I can't access this channel. Try /invite @basic_pole.");
             } else if (e.code == ErrorCode.PlatformError && e.data.error == 'invalid_blocks') {
                 res.send("Sorry, I couldn't create the poll. It was probably too large.");
             } else {
